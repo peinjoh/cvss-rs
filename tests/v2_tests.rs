@@ -1,7 +1,4 @@
 use cvss_rs as cvss;
-use cvss_rs::helper::round_to_first_decimal;
-use cvss_rs::Cvss;
-
 #[test]
 fn test_v2_0_example() {
     let input_json = include_str!("data/v2_0_example.json");

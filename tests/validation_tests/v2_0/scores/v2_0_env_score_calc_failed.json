@@ -1,0 +1,7 @@
+{
+  "baseScore": 7.8,
+  "vectorString": "AV:N/AC:L/Au:N/C:N/I:N/A:C/E:F/RL:OF/RC:C/CDP:H/TD:H/CR:M/IR:M",
+  "environmentalScore": 9.2,
+  "temporalScore": 6.4,
+  "version": "2.0"
+}

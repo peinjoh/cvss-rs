@@ -42,7 +42,6 @@ fn test_v2_zero_impact_score() {
     assert_eq!(calculated_score, 0.0);
 }
 
-
 #[test]
 fn test_v2_real_cve_2002_0392() {
     // This is a real CVE with the metrics taken from the official first.org CVSS Scoring Guide examples:
@@ -65,7 +64,6 @@ fn test_v2_real_cve_2002_0392() {
     assert_eq!(calculated_environmental_score, 9.2);
 }
 
-
 #[test]
 fn test_v2_real_cve_2003_0062() {
     // This is a real CVE with the metrics taken from the official first.org CVSS Scoring Guide examples:
@@ -87,7 +85,6 @@ fn test_v2_real_cve_2003_0062() {
     assert_eq!(calculated_temporal_score, 4.9);
     assert_eq!(calculated_environmental_score, 7.5);
 }
-
 
 #[test]
 fn test_v2_real_cve_2003_0818() {

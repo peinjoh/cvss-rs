@@ -6,7 +6,7 @@ use std::str::FromStr;
 use strum::{Display, EnumString};
 
 use crate::version::VersionV3;
-use crate::{ParseError, Severity as UnifiedSeverity};
+use crate::{Severity as UnifiedSeverity, VectorParseError};
 
 /// Represents a CVSS v3.0 or v3.1 score object.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -569,32 +569,35 @@ impl CvssV3 {
 }
 
 impl FromStr for CvssV3 {
-    type Err = ParseError;
+    type Err = VectorParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut components = s.split('/');
 
         // Parse version prefix (e.g., "CVSS:3.1")
-        let version_component = components.next().ok_or_else(|| ParseError::InvalidPrefix {
-            found: String::new(),
-        })?;
+        let version_component =
+            components
+                .next()
+                .ok_or_else(|| VectorParseError::InvalidPrefix {
+                    found: String::new(),
+                })?;
 
         let mut version_parts = version_component.split(':');
         let prefix = version_parts
             .next()
-            .ok_or_else(|| ParseError::InvalidPrefix {
+            .ok_or_else(|| VectorParseError::InvalidPrefix {
                 found: version_component.to_string(),
             })?;
 
         if !prefix.eq_ignore_ascii_case("CVSS") {
-            return Err(ParseError::InvalidPrefix {
+            return Err(VectorParseError::InvalidPrefix {
                 found: prefix.to_string(),
             });
         }
 
         let version_str = version_parts
             .next()
-            .ok_or_else(|| ParseError::InvalidVersion {
+            .ok_or_else(|| VectorParseError::InvalidVersion {
                 version: version_component.to_string(),
             })?;
 
@@ -602,7 +605,7 @@ impl FromStr for CvssV3 {
             "3.0" => VersionV3::V3_0,
             "3.1" => VersionV3::V3_1,
             _ => {
-                return Err(ParseError::InvalidVersion {
+                return Err(VectorParseError::InvalidVersion {
                     version: version_str.to_string(),
                 })
             }
@@ -651,20 +654,20 @@ impl FromStr for CvssV3 {
             let mut parts = component.split(':');
             let key = parts
                 .next()
-                .ok_or_else(|| ParseError::InvalidComponent {
+                .ok_or_else(|| VectorParseError::InvalidComponent {
                     component: component.to_string(),
                 })?
                 .to_ascii_uppercase();
             let value = parts
                 .next()
-                .ok_or_else(|| ParseError::InvalidComponent {
+                .ok_or_else(|| VectorParseError::InvalidComponent {
                     component: component.to_string(),
                 })?
                 .to_ascii_uppercase();
 
             // Check for extra colons
             if parts.next().is_some() {
-                return Err(ParseError::InvalidComponent {
+                return Err(VectorParseError::InvalidComponent {
                     component: component.to_string(),
                 });
             }
@@ -673,162 +676,250 @@ impl FromStr for CvssV3 {
                 // Base metrics
                 "AV" => {
                     cvss.attack_vector =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 "AC" => {
                     cvss.attack_complexity =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 "PR" => {
                     cvss.privileges_required =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 "UI" => {
                     cvss.user_interaction =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 "S" => {
                     cvss.scope =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 "C" => {
                     cvss.confidentiality_impact =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 "I" => {
                     cvss.integrity_impact =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 "A" => {
                     cvss.availability_impact =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 // Temporal metrics
                 "E" => {
                     cvss.exploit_code_maturity =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 "RL" => {
                     cvss.remediation_level =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 "RC" => {
                     cvss.report_confidence =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 // Environmental metrics
                 "CR" => {
                     cvss.confidentiality_requirement =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 "IR" => {
                     cvss.integrity_requirement =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 "AR" => {
                     cvss.availability_requirement =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 "MAV" => {
                     cvss.modified_attack_vector =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 "MAC" => {
                     cvss.modified_attack_complexity =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 "MPR" => {
                     cvss.modified_privileges_required =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 "MUI" => {
                     cvss.modified_user_interaction =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 "MS" => {
                     cvss.modified_scope =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 "MC" => {
                     cvss.modified_confidentiality_impact =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 "MI" => {
                     cvss.modified_integrity_impact =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 "MA" => {
                     cvss.modified_availability_impact =
-                        Some(value.parse().map_err(|_| ParseError::InvalidMetricValue {
-                            metric: key.clone(),
-                            value: value.clone(),
-                        })?);
+                        Some(
+                            value
+                                .parse()
+                                .map_err(|_| VectorParseError::InvalidMetricValue {
+                                    metric: key.clone(),
+                                    value: value.clone(),
+                                })?,
+                        );
                 }
                 _ => {
-                    return Err(ParseError::UnknownMetric { metric: key });
+                    return Err(VectorParseError::UnknownMetric { metric: key });
                 }
             }
         }
