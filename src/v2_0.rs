@@ -7,7 +7,6 @@ use strum::{Display, EnumString};
 
 use crate::{ParseError, Severity as UnifiedSeverity};
 
-
 /// Represents a CVSS v2.0 score object.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -347,11 +346,10 @@ fn round_to_first_decimal(value: f64) -> f64 {
 
 enum ImpactKind {
     WithImpact,
-    WithAdjustedImpact
+    WithAdjustedImpact,
 }
 
 impl CvssV2 {
-
     pub fn vector_string(&self) -> &str {
         &self.vector_string
     }
@@ -413,7 +411,7 @@ impl CvssV2 {
     ///
     /// - `Some(base_score)` if the required base metrics are present.
     /// - `None` if any of the required base metrics are missing.
-    fn calculate_base_score(&self, impact: ImpactKind) -> Option<f64> {
+    fn calculate_base_score(&self, impact_kind: ImpactKind) -> Option<f64> {
         // All base metrics are required
         let ci = self.confidentiality_impact.as_ref()?;
         let ii = self.integrity_impact.as_ref()?;
@@ -423,21 +421,30 @@ impl CvssV2 {
         let au = self.authentication.as_ref()?;
 
         // Calculate impact specified in `impact` argument.
-        let impact = match impact {
+        let impact_score = match impact_kind {
             ImpactKind::WithImpact => {
                 10.41 * (1.0 - (1.0 - ci.score()) * (1.0 - ii.score()) * (1.0 - ai.score()))
             }
             ImpactKind::WithAdjustedImpact => {
                 // requirement scores default to 1.0 (not defined) if not specified
-                let cr = self.confidentiality_requirement.as_ref().map_or(1.0, |v| v.score());
-                let ir = self.integrity_requirement.as_ref().map_or(1.0, |v| v.score());
-                let ar = self.availability_requirement.as_ref().map_or(1.0, |v| v.score());
+                let cr = self
+                    .confidentiality_requirement
+                    .as_ref()
+                    .map_or(1.0, |v| v.score());
+                let ir = self
+                    .integrity_requirement
+                    .as_ref()
+                    .map_or(1.0, |v| v.score());
+                let ar = self
+                    .availability_requirement
+                    .as_ref()
+                    .map_or(1.0, |v| v.score());
 
                 (10.41
                     * (1.0
-                    - (1.0 - ci.score() * cr)
-                    * (1.0 - ii.score() * ir)
-                    * (1.0 - ai.score() * ar)))
+                        - (1.0 - ci.score() * cr)
+                            * (1.0 - ii.score() * ir)
+                            * (1.0 - ai.score() * ar)))
                     .min(10.0)
             }
         };
@@ -446,10 +453,10 @@ impl CvssV2 {
         let exploitability = 20.0 * av.score() * ac.score() * au.score();
 
         // f(impact) = 0 if impact = 0, else 1.176
-        let f_impact = if impact == 0.0 { 0.0 } else { 1.176 };
+        let f_impact = if impact_score == 0.0 { 0.0 } else { 1.176 };
 
         // Calculate base score
-        let score = ((0.6 * impact) + (0.4 * exploitability) - 1.5) * f_impact;
+        let score = ((0.6 * impact_score) + (0.4 * exploitability) - 1.5) * f_impact;
 
         // Round to 1 decimal place
         Some(round_to_first_decimal(score))
@@ -499,10 +506,7 @@ impl CvssV2 {
         let report_confidence = self.report_confidence.as_ref().map_or(1.0, |r| r.score());
 
         // calculate temporal score
-        let temporal_score = base_score
-            * exploitability
-            * remediation_level
-            * report_confidence;
+        let temporal_score = base_score * exploitability * remediation_level * report_confidence;
 
         // round to 1 decimal place
         Some(round_to_first_decimal(temporal_score))
@@ -530,18 +534,18 @@ impl CvssV2 {
         let adjusted_temporal = self.calculate_temporal_score(ImpactKind::WithAdjustedImpact)?;
 
         // Environmental metrics default to "not defined" (0.0 for CDP, 1.0 for TD) if not specified
-        let cdp = self.collateral_damage_potential.as_ref().map_or(0.0, |v| v.score());
+        let cdp = self
+            .collateral_damage_potential
+            .as_ref()
+            .map_or(0.0, |v| v.score());
         let td = self.target_distribution.as_ref().map_or(1.0, |v| v.score());
 
         // calculate environmental score
-        let environmental_score = (adjusted_temporal
-            + (10.0 - adjusted_temporal) * cdp)
-            * td;
+        let environmental_score = (adjusted_temporal + (10.0 - adjusted_temporal) * cdp) * td;
 
         // round to 1 decimal place
         Some(round_to_first_decimal(environmental_score))
     }
-
 }
 
 impl FromStr for CvssV2 {
