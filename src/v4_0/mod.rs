@@ -11,7 +11,8 @@ use std::fmt;
 use std::str::FromStr;
 use strum::{Display, EnumString};
 
-use crate::{Severity as UnifiedSeverity, VectorParseError};
+use crate::validation_errors::VectorParseError;
+use crate::Severity as UnifiedSeverity;
 
 /// Represents a CVSS v4.0 score object.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

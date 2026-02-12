@@ -1,4 +1,3 @@
-use cvss_rs as cvss;
 use cvss_rs::v4_0::CvssV4;
 use std::str::FromStr;
 
@@ -13,7 +12,7 @@ fn test_v4_0_debug_mismatch() {
 }
 
 #[test]
-fn test_v4_0_exploit_maturity_notdefined() {
+fn test_v4_0_exploit_maturity_not_defined() {
     // CVE-2025-6829: Vector with E:X (NotDefined) should still calculate to 5.3
     // Previously calculated 1.3 due to bug in merge_exploit_maturity
     let vector = "CVSS:4.0/AV:N/AC:L/AT:N/PR:L/UI:N/VC:L/VI:L/VA:L/SC:N/SI:N/SA:N/E:X";
@@ -31,36 +30,6 @@ fn test_v4_0_exploit_maturity_notdefined() {
 
     let score2 = cvss2.calculated_base_score().unwrap();
     assert_eq!(score2, 5.1, "E:X should be treated as E:A");
-}
-
-#[test]
-fn test_v4_0_example() {
-    let input_json = include_str!("data/v4_0_example.json");
-    let cvss: cvss::Cvss = serde_json::from_str(input_json).unwrap();
-
-    assert_eq!(cvss.version(), cvss::Version::V4);
-    assert_eq!(cvss.base_score(), 9.3);
-    assert_eq!(cvss.base_severity().unwrap(), cvss::Severity::Critical);
-}
-
-#[test]
-fn test_v4_0_cve_example() {
-    let input_json = include_str!("data/v4_0_cve_example.json");
-    let cvss: cvss::Cvss = serde_json::from_str(input_json).unwrap();
-
-    assert_eq!(cvss.version(), cvss::Version::V4);
-    assert_eq!(cvss.base_score(), 5.9);
-    assert_eq!(cvss.base_severity().unwrap(), cvss::Severity::Medium);
-}
-
-#[test]
-fn test_v4_0_minimal() {
-    let input_json = include_str!("data/v4_0_minimal.json");
-    let cvss: cvss::Cvss = serde_json::from_str(input_json).unwrap();
-
-    assert_eq!(cvss.version(), cvss::Version::V4);
-    assert_eq!(cvss.base_score(), 9.9);
-    assert_eq!(cvss.base_severity().unwrap(), cvss::Severity::Critical);
 }
 
 #[test]

@@ -1,4 +1,5 @@
 use anyhow::{anyhow, bail};
+use cvss_rs::traits::CvssScoreCalculation;
 use cvss_rs::{v2_0::CvssV2, v3::CvssV3, v4_0::CvssV4};
 use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
 use rayon::prelude::*;
