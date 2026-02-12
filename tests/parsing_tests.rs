@@ -1,4 +1,4 @@
-mod score_calculation {
+mod parsing {
     mod v2_tests;
     mod v3_tests;
     mod v4_tests;

@@ -1,3 +1,4 @@
+use cvss_rs::traits::CvssScoreCalculation;
 use cvss_rs::v2_0::CvssV2;
 use std::str::FromStr;
 
@@ -57,7 +58,7 @@ fn test_v2_undefined_temporal_and_environmental_metrics() {
         .calculated_temporal_score()
         .expect("Failed to calculate temporal score");
     let calculated_environmental_score = cvss
-        .calculated_environmental_score()
+        .calculated_temporal_score()
         .expect("Failed to calculate environmental score");
 
     // With all temporal and environmental metrics set to NotDefined,
