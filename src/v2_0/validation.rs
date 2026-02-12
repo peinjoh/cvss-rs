@@ -10,7 +10,7 @@ impl CvssValidation for CvssV2 {
             Ok(cvss_v2) => cvss_v2,
             Err(error) => {
                 return Some(ValidationErrors {
-                    vector_parse_errors: Some(error),
+                    vector_parse_error: Some(error),
                     json_validation_errors: None,
                     score_validation_errors: None,
                 })
@@ -21,7 +21,7 @@ impl CvssValidation for CvssV2 {
 
         if json_validation_errors.is_some() || score_validation_errors.is_some() {
             return Some(ValidationErrors {
-                vector_parse_errors: None,
+                vector_parse_error: None,
                 json_validation_errors,
                 score_validation_errors,
             });
@@ -32,8 +32,8 @@ impl CvssValidation for CvssV2 {
 }
 
 impl CvssV2 {
-    fn validate_json(raw: &CvssV2, from_vector: &CvssV2) -> Option<Vec<JsonValidationError>> {
-        macro_rules! validate_field {
+    fn validate_json(raw: &CvssV2, vector: &CvssV2) -> Option<Vec<JsonValidationError>> {
+        macro_rules! val_field {
             ($errors:expr, $raw:expr, $from_vector:expr, $field:ident, $name:expr) => {
                 match (&$raw.$field, &$from_vector.$field) {
                     (Some(raw_val), Some(vec_val)) => {
@@ -59,99 +59,63 @@ impl CvssV2 {
             };
         }
 
-        let mut errors: Option<Vec<JsonValidationError>> = None;
+        let mut err: Option<Vec<JsonValidationError>> = None;
 
         // Base Metrics
-        validate_field!(errors, raw, from_vector, access_vector, "Access Vector");
-        validate_field!(
-            errors,
+        val_field!(err, raw, vector, access_vector, "Access Vector");
+        val_field!(err, raw, vector, access_complexity, "Access Complexity");
+        val_field!(err, raw, vector, authentication, "Authentication");
+        val_field!(
+            err,
             raw,
-            from_vector,
-            access_complexity,
-            "Access Complexity"
-        );
-        validate_field!(errors, raw, from_vector, authentication, "Authentication");
-        validate_field!(
-            errors,
-            raw,
-            from_vector,
+            vector,
             confidentiality_impact,
             "Confidentiality Impact"
         );
-        validate_field!(
-            errors,
-            raw,
-            from_vector,
-            integrity_impact,
-            "Integrity Impact"
-        );
-        validate_field!(
-            errors,
-            raw,
-            from_vector,
-            availability_impact,
-            "Availability Impact"
-        );
+        val_field!(err, raw, vector, integrity_impact, "Integrity Impact");
+        val_field!(err, raw, vector, availability_impact, "Availability Impact");
 
         // Temporal Metrics
-        validate_field!(errors, raw, from_vector, exploitability, "Exploitability");
-        validate_field!(
-            errors,
-            raw,
-            from_vector,
-            remediation_level,
-            "Remediation Level"
-        );
-        validate_field!(
-            errors,
-            raw,
-            from_vector,
-            report_confidence,
-            "Report Confidence"
-        );
+        val_field!(err, raw, vector, exploitability, "Exploitability");
+        val_field!(err, raw, vector, remediation_level, "Remediation Level");
+        val_field!(err, raw, vector, report_confidence, "Report Confidence");
 
         // Environmental Metrics
-        validate_field!(
-            errors,
+        val_field!(
+            err,
             raw,
-            from_vector,
+            vector,
             collateral_damage_potential,
             "Collateral Damage Potential"
         );
-        validate_field!(
-            errors,
+        val_field!(err, raw, vector, target_distribution, "Target Distribution");
+        val_field!(
+            err,
             raw,
-            from_vector,
-            target_distribution,
-            "Target Distribution"
-        );
-        validate_field!(
-            errors,
-            raw,
-            from_vector,
+            vector,
             confidentiality_requirement,
             "Confidentiality Requirement"
         );
-        validate_field!(
-            errors,
+        val_field!(
+            err,
             raw,
-            from_vector,
+            vector,
             integrity_requirement,
             "Integrity Requirement"
         );
-        validate_field!(
-            errors,
+        val_field!(
+            err,
             raw,
-            from_vector,
+            vector,
             availability_requirement,
             "Availability Requirement"
         );
 
-        errors
+        err
     }
 
     /// Validates that the scores (base, temporal, environmental) provided in the JSON match the
-    /// scores calculated from the vector string. If there is a mismatch, a ValidationError is returned.
+    /// scores calculated from the vector string. If there is a mismatch, a Some<Vec<ValidationError>> is returned.
     fn validate_scores(raw: &CvssV2, from_vector: &CvssV2) -> Option<Vec<ScoreValidationError>> {
         let mut errors: Option<Vec<ScoreValidationError>> = None;
 
@@ -176,7 +140,7 @@ impl CvssV2 {
                     .get_or_insert_with(Vec::new)
                     .push(ScoreValidationError::BaseScoreMismatch {
                         from_vector: base_score,
-                        found_json: raw.base_score,
+                        from_json: raw.base_score,
                     });
             }
         }

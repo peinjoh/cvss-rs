@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ValidationErrors {
-    pub vector_parse_errors: Option<VectorParseError>,
+    pub vector_parse_error: Option<VectorParseError>,
     pub json_validation_errors: Option<Vec<JsonValidationError>>,
     pub score_validation_errors: Option<Vec<ScoreValidationError>>,
 }
@@ -48,7 +48,7 @@ pub enum ScoreValidationError {
     /// Environmental Score calculation from vector failed
     EnvironmentalScoreCalculationFromVectorFailed,
     /// Set base score and base score calculated from the vector string do not match
-    BaseScoreMismatch { from_vector: f64, found_json: f64 },
+    BaseScoreMismatch { from_vector: f64, from_json: f64 },
     /// Set temporal score and temporal score calculated from the vector string do not match
     TemporalScoreMismatch { from_vector: f64, from_json: f64 },
     /// Set environmental score and environmental score calculated from the vector string do not match

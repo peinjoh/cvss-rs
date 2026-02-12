@@ -24,7 +24,7 @@ pub fn test_v2_base_score_calc_failed() {
         assert_eq!(
             cvss_v2.validate(),
             Some(ValidationErrors {
-                vector_parse_errors: None,
+                vector_parse_error: None,
                 json_validation_errors: None,
                 score_validation_errors: Some(vec![
                     ScoreValidationError::BaseScoreCalculationFromVectorFailed,
@@ -47,11 +47,11 @@ pub fn test_v2_base_score_wrong_calc() {
         assert_eq!(
             cvss_v2.validate(),
             Some(ValidationErrors {
-                vector_parse_errors: None,
+                vector_parse_error: None,
                 json_validation_errors: None,
                 score_validation_errors: Some(vec![ScoreValidationError::BaseScoreMismatch {
                     from_vector: 7.8,
-                    found_json: 10.0
+                    from_json: 10.0
                 }]),
             })
         );
@@ -81,7 +81,7 @@ pub fn test_v2_temp_score_calc_wrong() {
         assert_eq!(
             cvss_v2.validate(),
             Some(ValidationErrors {
-                vector_parse_errors: None,
+                vector_parse_error: None,
                 json_validation_errors: None,
                 score_validation_errors: Some(vec![ScoreValidationError::TemporalScoreMismatch {
                     from_vector: 6.4,
@@ -115,7 +115,7 @@ pub fn test_v2_env_score_wrong_calc() {
         assert_eq!(
             cvss_v2.validate(),
             Some(ValidationErrors {
-                vector_parse_errors: None,
+                vector_parse_error: None,
                 json_validation_errors: None,
                 score_validation_errors: Some(vec![
                     ScoreValidationError::EnvironmentalScoreMismatch {
@@ -139,7 +139,7 @@ pub fn test_v2_value_conflict() {
         assert_eq!(
             cvss_v2.validate(),
             Some(ValidationErrors {
-                vector_parse_errors: None,
+                vector_parse_error: None,
                 json_validation_errors: Some(vec![JsonValidationError::ConflictingMetricValues {
                     metric: "Access Vector".to_string(),
                     val_from_json: "L".to_string(),
@@ -154,7 +154,7 @@ pub fn test_v2_value_conflict() {
 }
 
 #[test]
-pub fn test_v2_metric_missing_in_network() {
+pub fn test_v2_metric_missing_in_vector() {
     let input_json = include_str!("v2_0_data/v2_0_metric_missing_in_vector.json");
     let cvss: cvss::Cvss = serde_json::from_str(input_json).unwrap();
 
@@ -162,7 +162,7 @@ pub fn test_v2_metric_missing_in_network() {
         assert_eq!(
             cvss_v2.validate(),
             Some(ValidationErrors {
-                vector_parse_errors: None,
+                vector_parse_error: None,
                 json_validation_errors: Some(vec![
                     JsonValidationError::MetricProvidedInJsonButMissingInVector {
                         metric: "Access Vector".to_string(),
