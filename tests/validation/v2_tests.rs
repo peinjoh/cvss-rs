@@ -1,7 +1,7 @@
 use cvss_rs as cvss;
 use cvss_rs::traits::CvssValidation;
-use cvss_rs::Cvss;
 use cvss_rs::validation_errors::{JsonValidationError, ScoreValidationError, ValidationErrors};
+use cvss_rs::Cvss;
 
 #[test]
 pub fn test_v2_base_score_correct() {
@@ -176,6 +176,42 @@ pub fn test_v2_metric_missing_in_network() {
                 ])
             })
         );
+    } else {
+        panic!("Expected Cvss::V2 variant");
+    }
+}
+
+#[test]
+pub fn test_v2_real_cve_2002_0392() {
+    let input_json = include_str!("v2_0_data/v2_0_cve_2002_0392.json");
+    let cvss: cvss::Cvss = serde_json::from_str(input_json).unwrap();
+
+    if let Cvss::V2(cvss_v2) = &cvss {
+        assert_eq!(cvss_v2.validate(), None);
+    } else {
+        panic!("Expected Cvss::V2 variant");
+    }
+}
+
+#[test]
+pub fn test_v2_real_cve_2003_0062() {
+    let input_json = include_str!("v2_0_data/v2_0_cve_2003_0062.json");
+    let cvss: cvss::Cvss = serde_json::from_str(input_json).unwrap();
+
+    if let Cvss::V2(cvss_v2) = &cvss {
+        assert_eq!(cvss_v2.validate(), None);
+    } else {
+        panic!("Expected Cvss::V2 variant");
+    }
+}
+
+#[test]
+pub fn test_v2_real_cve_2003_0818() {
+    let input_json = include_str!("v2_0_data/v2_0_cve_2003_0818.json");
+    let cvss: cvss::Cvss = serde_json::from_str(input_json).unwrap();
+
+    if let Cvss::V2(cvss_v2) = &cvss {
+        assert_eq!(cvss_v2.validate(), None);
     } else {
         panic!("Expected Cvss::V2 variant");
     }
